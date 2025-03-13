@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Entity\Adventurer;
+use App\Entity\AdventurerRace;
 use App\Entity\AdventurerStatus;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpClient\HttpClient;
@@ -12,7 +13,6 @@ class GithubService
 {
 
     public function __construct(
-        private LoggerInterface $logger,
         private HttpClientInterface $client
     )
     {
@@ -20,25 +20,25 @@ class GithubService
 
     public function getAdventurers(): array
     {
-        $url = "https://api.github.com/repos/atouzard/sdw-testing-course/issues";
-        $response = $this->client->request('GET', $url);
+        $response = $this->client->request('GET', 'https://api.github.com/repos/atouzard/sdw-testing-course/issues');
+
+        $results = $response->toArray();
 
         $adventurers = [];
-
-        foreach($response->toArray() as $issue) {
-            $adv = new Adventurer(
-                $issue['title'],
+        foreach ($results as $result) {
+            $adventurer = new Adventurer(
+                $result['title'],
+                AdventurerRace::HUMAN,
                 'Unknown',
-                20,
+                0,
+                0
             );
 
-            foreach ($issue['labels'] as $label) {
-                $adv->setStatus(AdventurerStatus::tryFrom($label['name']));
+            foreach ($result['labels'] as $label) {
+                $adventurer->setStatus(AdventurerStatus::tryFrom($label['name']));
             }
-            $adventurers[] = $adv;
+            $adventurers[] = $adventurer;
         }
-
-        $this->logger->info(sprintf('%d Adventurers fetched from Github', count($adventurers)));
 
         return $adventurers;
     }

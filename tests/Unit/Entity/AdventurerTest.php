@@ -3,6 +3,7 @@
 namespace App\Tests\Unit\Entity;
 
 use App\Entity\Adventurer;
+use App\Entity\AdventurerRace;
 use App\Entity\AdventurerStatus;
 use PHPUnit\Framework\TestCase;
 
@@ -10,7 +11,7 @@ class AdventurerTest extends TestCase
 {
     public function testAdventurerGettersShouldSucceed(): void
     {
-        $adventurer = new Adventurer('Anne', 'Cleric', 2);
+        $adventurer = new Adventurer('Anne',AdventurerRace::HUMAN, 'Cleric', 2);
 
         $this->assertSame('Anne', $adventurer->getName());
         $this->assertSame('Cleric', $adventurer->getClass());
@@ -32,7 +33,7 @@ class AdventurerTest extends TestCase
      */
     public function testAdventurerHealthDescription(int $health, string $description): void
     {
-        $adventurer = new Adventurer('Anne', 'Cleric', $health);
+        $adventurer = new Adventurer('Anne', AdventurerRace::HUMAN,'Cleric', $health);
 
         $this->assertSame($description, $adventurer->getHealthDescription());
     }
@@ -54,7 +55,7 @@ class AdventurerTest extends TestCase
      */
     public function testAdventurerAvailability(string $status, int $health, bool $available): void
     {
-        $adventurer = new Adventurer('Anne', 'Cleric', $health);
+        $adventurer = new Adventurer('Anne', AdventurerRace::HUMAN,'Cleric', $health);
 
         $adventurer->setStatus(AdventurerStatus::tryFrom($status));
 
@@ -62,14 +63,14 @@ class AdventurerTest extends TestCase
     }
 
     public function testAventurerDescription() {
-        $adventurer = new Adventurer('Anne', 'Cleric', 5);
+        $adventurer = new Adventurer('Anne', AdventurerRace::HUMAN,'Cleric', 5);
         $this->assertSame("Nom : Anne, Class : Cleric, HP : 5", $adventurer->getDescription());
     }
 
     public function adventurerHealDataProvider(): \Generator
     {
         yield 'Heal 5 HP should succeed' => [10, 5, 15];
-        yield 'Heal should not go over max HP' => [10, 15, 20];
+        yield 'Heal should not go over 18 HP for lvl 1 Human' => [10, 15, 18];
         yield 'Heal should not go under min HP' => [10, -15, 0];
         yield 'Dead adventurer should not heal' => [0, 5, 0];
         yield 'Negative health adventurer should not heal' => [-5, 8, 0];
@@ -79,14 +80,12 @@ class AdventurerTest extends TestCase
      * @dataProvider adventurerHealDataProvider
      */
     public function testHealAdventurer($vieDepart, $vieSoignee, $vieFinale) {
-        $adventurer = new Adventurer('Anne', 'Cleric', $vieDepart);
+        $adventurer = new Adventurer('Anne', AdventurerRace::HUMAN,'Cleric', $vieDepart);
 
         $adventurer->heal($vieSoignee);
 
         $this->assertSame($vieFinale, $adventurer->getHealth());
     }
-
-
 
     public function adventurerXPLevelsDataProvider(): \Generator
     {
@@ -103,10 +102,42 @@ class AdventurerTest extends TestCase
      */
     public function testAdventurerXPLevels($xp, $level, $advancement): void
     {
-        $adventurer = new Adventurer('Anne', 'Cleric', 10);
+        $adventurer = new Adventurer('Anne', AdventurerRace::HUMAN,'Cleric', 10);
         $adventurer->addXP($xp);
         $this->assertSame($xp, $adventurer->getXp());
         $this->assertSame($level, $adventurer->getLevel());
         $this->assertSame($advancement, $adventurer->getLevelAdvancementPercentage());
     }
+
+
+    public function adventurerHPMaxByRaceDataProvider(): \Generator
+    {
+        yield 'Adventurer is a human and his max hp is 18' => [AdventurerRace::HUMAN, 10, 18];
+        yield 'Adventurer is a elf and his max hp is 16' => [AdventurerRace::ELF, 20, 16];
+        yield 'Adventurer is a orc and his max hp is 20' => [AdventurerRace::ORC, 10, 20];
+        yield 'Adventurer is a dwarf and his max hp is 22' => [AdventurerRace::DWARF, 15, 22];
+        yield 'Adventurer is a lvl 2 dwarf and his max hp is 34' => [AdventurerRace::DWARF, 1000, 34];
+    }
+
+    /**
+     * @dataProvider adventurerHPMaxByRaceDataProvider
+     */
+    public function testAdventurerHpMaxByRace($race, $xp, $maxHP): void
+    {
+        $adventurer = new Adventurer('Anne', $race, 'Cleric', 18, $xp);
+
+        $this->assertSame($maxHP, $adventurer->getMaxHealth());
+
+    }
+
+    // Calculer HP Max pour un aventurier
+    // HP Max = 10 + (Niveau * HP de la race)
+    // Utiliser ce max HP dans la methode de heal
+    // Aller chercher les races et HP max / race sur API
+
+    // HP de race :
+    // Human 8
+    // Elf 6
+    // Orc 10
+    // Dwarf 12
 }

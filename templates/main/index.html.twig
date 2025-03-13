@@ -8,6 +8,8 @@
             <thead>
             <tr>
                 <th>Name</th>
+                <th>XP</th>
+                <th>Race</th>
                 <th>Class</th>
                 <th>Health</th>
                 <th>Health description</th>
@@ -17,8 +19,10 @@
             {% for adventurer in adventurers %}
                 <tr>
                     <td>{{ adventurer.name }}</td>
+                    <td>{{ adventurer.xp }} (level {{ adventurer.level }})</td>
+                    <td>{{ adventurer.race.value }}</td>
                     <td>{{ adventurer.class }}</td>
-                    <td>{{ adventurer.health }} / 15</td>
+                    <td>{{ adventurer.health }} / {{ adventurer.maxHealth }}</td>
                     <td>{{ adventurer.healthDescription }}</td>
                 </tr>
             {% endfor %}

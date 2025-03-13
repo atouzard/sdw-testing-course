@@ -18,4 +18,16 @@ class ApiController extends AbstractController
             ['name' => 'Dennis', 'status' => 'eating'],
         ]);
     }
+
+    #[Route(path: '/api/races', name: 'api_races_list', methods: ['GET'])]
+    public function listRaces(): Response
+    {
+        return $this->json([
+            ['name' => 'Human', 'maxHp' => 8],
+            ['name' => 'Elf', 'maxHp' => 6],
+            ['name' => 'Orc', 'maxHp' => 10],
+            ['name' => 'Dwarf', 'maxHp' => 12],
+            ['name' => 'Halfling', 'maxHp' => 6],
+        ]);
+    }
 }

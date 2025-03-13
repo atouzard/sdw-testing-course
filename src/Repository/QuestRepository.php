@@ -20,4 +20,16 @@ class QuestRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Quest::class);
     }
+
+    public function hasActiveQuest(): bool
+    {
+        $quest = $this->createQueryBuilder('q')
+            ->where('q.finished = false')
+            ->orderBy('q.startedAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $quest !== null;
+    }
 }

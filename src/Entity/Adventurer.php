@@ -23,14 +23,18 @@ class Adventurer
     #[ORM\Column(enumType: AdventurerStatus::class)]
     private ?AdventurerStatus $status = AdventurerStatus::AVAILABLE;
 
+    private AdventurerRace $race;
+
     public function __construct(
         string $name,
+        AdventurerRace $race,
         string $class = 'Unknown',
         int    $health = 0,
         int    $xp = 0
     )
     {
         $this->name = $name;
+        $this->race = $race;
         $this->class = $class;
         $this->health = $health;
         $this->xp = $xp;
@@ -54,6 +58,11 @@ class Adventurer
     public function getXp(): int
     {
         return $this->xp;
+    }
+
+    public function setName(string $name): void
+    {
+        $this->name = $name;
     }
 
     public function getHealthDescription(): string
@@ -117,6 +126,11 @@ class Adventurer
         return sprintf('Nom : %s, Class : %s, HP : %d', $this->name, $this->class, $this->health);
     }
 
+    public function getRace(): AdventurerRace
+    {
+        return $this->race;
+    }
+
     public function heal(int $health): void
     {
         if ($this->health == 0 || $this->health < 0) {
@@ -126,8 +140,8 @@ class Adventurer
 
         $this->health = $health + $this->health;
 
-        if ($this->health > 20) {
-            $this->health = 20;
+        if ($this->health > $this->getMaxHealth()) {
+            $this->health = $this->getMaxHealth();
         } else if ($this->health < 0) {
             $this->health = 0;
         }
@@ -158,5 +172,22 @@ class Adventurer
     public function getLevelAdvancementPercentage(): int
     {
         return ($this->xp % 1000) / 10;
+    }
+
+    public function getMaxHealth(): int
+    {
+        if($this->race === AdventurerRace::ELF) {
+            $raceHp = 6;
+        } elseif($this->race === AdventurerRace::HUMAN) {
+            $raceHp = 8;
+        } elseif($this->race === AdventurerRace::ORC) {
+            $raceHp = 10;
+        }elseif($this->race === AdventurerRace::DWARF) {
+             $raceHp = 12;
+        }
+
+        $maxHp = 10 + ($this->getLevel() * $raceHp);
+
+        return $maxHp;
     }
 }
